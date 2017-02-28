@@ -104,7 +104,11 @@ pbar = progressbar.ProgressBar()
 for rowNum in pbar(range(2, sheet.max_row+1)):
     sheet.row_dimensions[rowNum].height = 180
     sheet.column_dimensions['C'].width = 30
-    imgUrl = skuImg[sheet.cell(row=rowNum, column=1).value]
+    try:
+        imgUrl = skuImg[sheet.cell(row=rowNum, column=1).value]
+    except:
+        logging.debug(sheet.cell(row=rowNum, column=1).value)
+        continue
     reqs = getHtml(imgUrl)
     data = reqs.content
     im = Im.open(BytesIO(data))
