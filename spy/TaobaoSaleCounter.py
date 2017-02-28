@@ -25,12 +25,12 @@ except Exception as error:
 
 logging.basicConfig(filename='log.txt', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# 获取评价页面链接
+# Get comment url
 def getUrl(currentPageNum):
     url = 'https://rate.taobao.com/feedRateList.htm?auctionNumId=%s&userNumId=%s&currentPageNum=%s' % (auctionNumId, userNumId, currentPageNum)
     return url
 
-# 获取网页内容
+# Get web data
 def getHtml(url):
     headers = {
         'Connection': 'Keep-Alive',
@@ -42,19 +42,19 @@ def getHtml(url):
     res.raise_for_status()	
     return res
 
-itemUrl = input('Enter Taobao Item Url - ') # 淘宝商品链接
-auctionNumId = re.findall('id=([0-9]+)', itemUrl)[0] # 商品ID
+itemUrl = input('Enter Taobao Item Url - ') # Taobao Item Url
+auctionNumId = re.findall('id=([0-9]+)', itemUrl)[0] # Item ID
 res = getHtml(itemUrl)
-userNumId = re.findall('userid=([0-9]+)', res.text)[0]	# 卖家ID
+userNumId = re.findall('userid=([0-9]+)', res.text)[0]	# Sellers' ID
 
-# 输入获取评价页面数，可获取最大值250
+# MaxPage: 250
 pageNum = input('Input page number: ')
 if len(pageNum) < 1 or int(pageNum) > 250:
     pageNum = 250
     print('Sorry! I can only get 250 pages!')
 urls = [getUrl(currentPageNum) for currentPageNum in range(1, int(pageNum)+1)]
 
-# 获取颜色和颜色图链接
+# Get sku and image url
 skuImg = {} 
 soup = bs4.BeautifulSoup(res.text, "html.parser")
 cels = soup.select('li[data-value] > a')
@@ -66,7 +66,7 @@ for cel in cels:
     c_url = 'https:' + re.findall('(//.*?\.[a-z]{2}g?)_\d\dx\d\d', img_data)[0]
     skuImg[cel.getText().strip('\n')] = c_url
 
-# 获取颜色和相应买家数
+# Get sku and the number of buyers
 commentsNum = 0
 nullNum = 0
 saleCounter = {}
@@ -87,17 +87,17 @@ for n in bar(range(len(urls))):
                 sku = sku.split('[')[0]
         except:
             nullNum += 1
-            logging.debug("Sku is Null! \nOn page: %s\nLocation: %s" % (urls[n], i)) # 系统默认好评，sku为空！
+            logging.debug("Sku is Null! \nOn page: %s\nLocation: %s" % (urls[n], i)) # Sku is null!
             continue
         saleCounter[sku] = saleCounter.get(sku,0) + 1
 
-# 导出颜色和相应买家数表格		
+#  Writing to MS Excel	
 df = pd.DataFrame({'counter': pd.Series(saleCounter, index=list(saleCounter.keys()))})
 df.sort_values(by='counter', ascending=False, inplace=True)
 fname = 'saleCounter_%s.xlsx' % auctionNumId
 df.to_excel(fname, sheet_name='Sheet1')
 
-# 表格中插入颜色相应图片
+# Append sku picture to Ms Excel
 wb = openpyxl.load_workbook(fname)
 sheet = wb.active
 pbar = progressbar.ProgressBar()
