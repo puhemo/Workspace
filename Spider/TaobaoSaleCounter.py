@@ -10,6 +10,7 @@ try:
     import pandas as pd
     import progressbar
     import openpyxl
+    import shutil
     import logging
     from io import BytesIO
     from PIL import Image as Im
@@ -113,13 +114,14 @@ for rowNum in pbar(range(2, sheet.max_row+1)):
     data = reqs.content
     im = Im.open(BytesIO(data))
     resizeImg = im.resize((230, 230))
-    os.makedirs('tmp', exist_ok=True)
+    os.makedirs(auctionNumId, exist_ok=True)
     fileName = 'C%s' % rowNum + '.' + imgUrl.split('.')[-1]
-    file =  os.path.join('tmp', fileName)
+    file =  os.path.join(auctionNumId, fileName)
     resizeImg.save(file)
     img = Image(file)
     sheet.add_image(img, 'C%s' % rowNum)
 
 wb.save(fname)
+shutil.rmtree(auctionNumId) # del folder
 print('Total comments: %s || Null comments: %s' % (commentsNum, nullNum))
 print("\nHi~Finished~~~")
