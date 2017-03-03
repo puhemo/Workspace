@@ -38,7 +38,6 @@ def getHtml(url):
     res.raise_for_status()	
     return res
 
-# 保存图片
 def saveImg(imgDict):
     for url in imgDict.keys():
         print("\nGET >>> %s " % url)
@@ -57,7 +56,35 @@ def saveImg(imgDict):
 url = input('Enter Taobao Url - ')
 itemId = re.findall('id=(\d+)', url)[0]
 
+# Get gallery image
 res = getHtml(url)
+soup = bs4.BeautifulSoup(res.text, "html.parser")
+els = soup.select('div[class="tb-pic tb-s50"] > a > img')
+m_dict = {}
+n = 0
+for el in els:
+    n += 1
+    m_name = str(n) + '.jpg'
+    mName = saveName('main', m_name)
+    m_data = el.get('data-src').split('_')
+    m_url = 'https:' + '_'.join(m_data[:len(m_data)-1])
+    m_dict[m_url] = mName
+
+# Get color image
+c_dict = {}
+cels = soup.select('li[data-value] > a')
+for cel in cels:
+    c_name = cel.getText().strip('\n') + '.jpg'
+    # 替换不支持文件名字符：'/\:*?"<>|'
+    c_name = c_name.translate(str.maketrans("|\\?*<\":>+[]/'", '_'*13)) 
+    cName = saveName('color', c_name)
+    c_data = cel.get('style')
+    if c_data == None:
+        continue
+    c_url = 'https:' + re.findall('(//.*?\.[a-z]{2}g?)_\d\dx\d\d', c_data)[0]
+    c_dict[c_url] = cName
+
+# Get description image
 reg = r"descUrl.*?location.protocol==='http:' \? '//(.*?)'.?:"
 desurl = 'http://' + re.findall(reg, res.text)[0]
 req = getHtml(desurl)
@@ -74,37 +101,8 @@ for item in itemDesc:
     dName = saveName('detail', d_name)
     d_dict[img_url] = dName
 
-soup = bs4.BeautifulSoup(res.text, "html.parser")
-els = soup.select('div[class="tb-pic tb-s50"] > a > img')
-m_dict = {}
-n = 0
-for el in els:
-    n += 1
-    m_name = str(n) + '.jpg'
-    mName = saveName('main', m_name)
-    m_data = el.get('data-src').split('_')
-    m_url = 'https:' + '_'.join(m_data[:len(m_data)-1])
-    m_dict[m_url] = mName
-
-c_dict = {}
-cels = soup.select('li[data-value] > a')
-
-for cel in cels:
-    c_name = cel.getText().strip('\n') + '.jpg'
-    # 替换不支持文件名字符：'/\:*?"<>|'
-    c_name = c_name.translate(str.maketrans("|\\?*<\":>+[]/'", '_'*13)) 
-    cName = saveName('color', c_name)
-    c_data = cel.get('style')
-    if c_data == None:
-        continue
-    try:
-        c_url = 'https:' + re.findall('(//.*?jpg?)_\d\dx\d\d', c_data)[0]
-    except:
-        c_url = 'https:' + re.findall('(//.*?png?)_\d\dx\d\d', c_data)[0]
-    c_dict[c_url] = cName
-
 saveImg(m_dict)
 saveImg(c_dict)
 saveImg(d_dict)
 
-print("\nHi~Finished~~~")
+print("\nHi~Finished~~~")	
