@@ -16,6 +16,7 @@ except Exception as error:
     print("PLEASE UPGRADE PIP IF IT DOESN'T WORK ")
     print("Restart this Program!")
     exit(-2)
+
 print("""
         Taobao Item Image Spider
 """)
@@ -26,17 +27,22 @@ def saveName(folder, name):
     fname =  os.path.join(Folder, name)
     return fname
 
+def getHtml(url):
+    headers = {
+        'Connection': 'Keep-Alive',
+        'Accept': 'text/html, application/xhtml+xml, */*',
+        'Accept-Language': 'en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko'
+    }
+    res = requests.get(url, headers = headers, timeout = 10)
+    res.raise_for_status()	
+    return res
+
 # 保存图片
 def saveImg(imgDict):
     for url in imgDict.keys():
         print("\nGET >>> %s " % url)
-        headers = {
-            'Connection': 'Keep-Alive',
-            'Accept': 'text/html, application/xhtml+xml, */*',
-            'Accept-Language': 'en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko'
-        }
-        res = requests.get(url, headers = headers, timeout = 10)
+        res = getHtml(url)
         data = res.content
         im = Image.open(BytesIO(data))
         ### 宽/高的像素小于300
@@ -49,18 +55,12 @@ def saveImg(imgDict):
         f.close()
 
 url = input('Enter Taobao Url - ')
-if len(url) < 1:
-    url = 'https://item.taobao.com/item.htm?spm=a230r.1.14.163.zx416O&id=534076017689&ns=1&abbucket=18#detail'
-print('URL:', url)
 itemId = re.findall('id=(\d+)', url)[0]
 
-res = requests.get(url)
-res.raise_for_status()
-
+res = getHtml(url)
 reg = r"descUrl.*?location.protocol==='http:' \? '//(.*?)'.?:"
 desurl = 'http://' + re.findall(reg, res.text)[0]
-req = requests.get(desurl)
-req.raise_for_status()
+req = getHtml(desurl)
 Soup = bs4.BeautifulSoup(req.text, "html.parser")
 itemDesc = Soup.select('img')
 d_dict = {}
