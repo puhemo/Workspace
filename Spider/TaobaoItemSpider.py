@@ -6,12 +6,13 @@ try:
     import re
     import bs4
     import requests
+    import progressbar
     from io import BytesIO
     from PIL import Image
 except Exception as error:
     print("MISSING SOME MODULE(s)")
     print (error)
-    os.system("pip install beautifulsoup4 Pillow requests ")
+    os.system("pip install beautifulsoup4 Pillow requests progressbar ")
     print("TRY TO INSTALL SOME MODs")
     print("PLEASE UPGRADE PIP IF IT DOESN'T WORK ")
     print("Restart this Program!")
@@ -39,7 +40,8 @@ def getHtml(url):
     return res
 
 def saveImg(imgDict):
-    for url in imgDict.keys():
+    bar = progressbar.ProgressBar(redirect_stdout=True)
+    for url in bar(imgDict.keys()):
         print("\nGET >>> %s " % url)
         res = getHtml(url)
         data = res.content
