@@ -18,10 +18,6 @@ except Exception as error:
     print("Restart this Program!")
     exit(-2)
 
-#print("""
-#        Taobao Item Image Spider
-#""")
-
 def saveName(folder, name):
     Folder = os.path.join(itemId, folder)
     os.makedirs(Folder, exist_ok=True)
@@ -107,7 +103,6 @@ def getImg(imgTag, src, reg):
 url = input('Enter Ali Url - ')
 itemId = re.findall('id=(\d+)', url)[0]
 
-
 if 'taobao' in url:
     print("""
             Taobao Item Image Spider
@@ -128,5 +123,4 @@ else:
     print("You get wrong url!")
 
 getImg(imgTag, src, reg)
-
 print("\nHi~Finished~~~")	
