@@ -45,6 +45,7 @@ def getHtml(url):
 
 itemUrl = input('Enter Taobao Item Url - ') # Taobao Item Url
 auctionNumId = re.findall('id=([0-9]+)', itemUrl)[0] # Item ID
+os.makedirs(auctionNumId, exist_ok=True)
 res = getHtml(itemUrl)
 userNumId = re.findall('userid=([0-9]+)', res.text)[0]	# Sellers' ID
 
@@ -114,7 +115,6 @@ for rowNum in pbar(range(2, sheet.max_row+1)):
     data = reqs.content
     im = Im.open(BytesIO(data))
     resizeImg = im.resize((230, 230))
-    os.makedirs(auctionNumId, exist_ok=True)
     fileName = 'C%s' % rowNum + '.' + imgUrl.split('.')[-1]
     file =  os.path.join(auctionNumId, fileName)
     resizeImg.save(file)
